@@ -13,33 +13,13 @@
 
 #define MAXCOM  1000 // max number of letters to be supported
 #define MAXLIST  100 // max number of commmands to be supported 
-#define MAXCACHE 100
 
 // Clearing the shell using escape sequences
 #define clear() printf("\033[H\033[J")
 
-#define left_arrow() printf("\033[D")
-#define right_arrow() printf("\33[C")
-
-char (*command_cache)[MAXCACHE];
-
-void input_command() {
-	
-	char front_cursor[MAXCOM];
-	char back_cursor[MAXCOM];
-	char current;
-
-	
-
-	
-}
-
 int main() {
 
-	command_cache = calloc(MAXCOM * MAXCACHE, sizeof(char));
-
 	char cwd[MAXCOM];
-	char input[MAXCOM];
 	char* test;
 
 	clear();

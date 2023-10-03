@@ -87,6 +87,16 @@ char *getCWD() {
   return NULL;
 }
 
+void change_directory(char *path) {
+
+  if (path == NULL) return;
+
+  if (chdir(path) < 0) {
+    perror("Failed to change directory");
+    return;
+  } else return;
+}
+
 int main() {
 
   char **command = NULL;
@@ -110,7 +120,12 @@ int main() {
       }
 
       if (child_pid == 0) {
-        if (execvp(command[0], command) < 0) {
+
+        if (!strcmp(command[0], "cd")) {
+          change_directory(command[1]);
+        }
+
+        else if (execvp(command[0], command) < 0) {
           perror("Failed to execute command through execvp call\n");
           exit(1);
         }

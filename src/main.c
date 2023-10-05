@@ -1,6 +1,8 @@
 #include <errno.h>
+#include <readline/chardefs.h>
 #include <readline/history.h>
 #include <readline/readline.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,65 +14,120 @@
 #include "commands.h"
 #include "functions.h"
 
-#define FALSE 0
-#define TRUE 1
+extern struct CommandMapping commandMap[];
+extern int commandMapSize;
 
 // Clearing the shell using escape sequences
 #define clear() printf("\033[H\033[J")
 
-extern struct CommandMapping commandMap[];
-extern int commandMapSize;
+// Text modifiers //
+enum TextColor { RESET, RED, GREEN, BLUE, YELLOW };
+
+#define RED_TXT_COLOR() printf("\x1b[31m");
+#define GREEN_TXT_COLOR() printf("\x1b[32m");
+#define BLUE_TXT_COLOR() printf("\x1b[34m");
+#define YELLOW_TXT_COLOR() printf("\x1b[33m");
+#define RESET_TXT_COLOR() printf("\x1b[0m");
+
+void customPrint(char *string, enum TextColor color) {
+  enum TextColor textColor;
+
+  int str_len = strlen(string);
+
+  switch (color) {
+  case RESET:
+    RESET_TXT_COLOR();
+    break;
+  case RED:
+    RED_TXT_COLOR();
+    break;
+  case GREEN:
+    GREEN_TXT_COLOR();
+    break;
+  case BLUE:
+    BLUE_TXT_COLOR();
+    break;
+  case YELLOW:
+    YELLOW_TXT_COLOR();
+    break;
+  }
+
+  printf("%s", string);
+  RESET_TXT_COLOR();
+}
+
+void procInput(char *input) {
+  struct Command command;
+  pid_t child_pid;
+  int child_status;
+  
+  command = getCommand(input);
+
+  child_pid = fork();
+
+  // check if child process was created successfully
+  if (child_pid < 0) {
+    perror("Failed creating child process\n");
+    exit(1);
+  }
+
+  // check if current process is parent or child
+  // child process won't have a child_pid where the parent process will
+  if (child_pid == 0) {
+
+    // iterate over commands in map
+    for (int i = 0; i < commandMapSize; i++) {
+      if (strcmp(command.command[0], commandMap[i].name) == 0) {
+        commandMap[i].functionPtr(command.command);
+        command.executed = true;
+        break;
+      }
+    }
+
+    // if commands was not in map attempt to execute from existing bin
+    if (!command.executed) {
+      if (execvp(command.command[0], command.command) < 0) {
+        perror("Failed to execute command through execvp call\n");
+        exit(EXIT_FAILURE);
+      } else {
+        command.executed = true;
+      }
+    }
+
+  } else {
+    // Have parent process to wait for child process to finish
+    waitpid(child_pid, &child_status, WUNTRACED);
+  }
+
+  freeCharArray(command.command);
+}
+
 
 int main() {
 
-  struct Command command;
   char *input;
   char *cwd;
-  pid_t child_pid;
-  int child_status;
 
+  // main loop
   while (1) {
 
     cwd = getCWD();
+
+    // check that cwd was aquired
     if (cwd != NULL) {
-      printf("%s", cwd);
-      input = readline("> ");
-      command = getCommand(input);
+      customPrint(strcat(cwd, "> "), GREEN);
+      input = readline("");
 
-      child_pid = fork();
-      if (child_pid < 0) {
-        perror("Failed creating child process\n");
-        exit(1);
-      }
-
-      if (child_pid == 0) {
-
-        for (int i = 0; i < commandMapSize; i++) {
-          if (strcmp(command.command[0], commandMap[i].name) == 0) {
-            commandMap[i].functionPtr(command.command);
-            command.executed = 1;
-            break;
-          }
-        }
-
-        if (!command.executed) {
-          if (execvp(command.command[0], command.command) < 0) {
-            perror("Failed to execute command through execvp call\n");
-            exit(1);
-          }
-        }
-
-      } else {
-        waitpid(child_pid, &child_status, WUNTRACED);
+      if (strlen(input) > 0) {
+        procInput(input);
       }
     } else {
-      return 1;
+      exit(EXIT_FAILURE);
     }
 
-    freeCharArray(command.command);
     free(input);
     free(cwd);
   }
 
-  return 0;
+  exit(EXIT_SUCCESS);
 }

@@ -60,7 +60,7 @@ void procInput(char *input) {
   struct Command command;
   pid_t child_pid;
   int child_status;
-  
+
   command = getCommand(input);
 
   child_pid = fork();
@@ -102,21 +102,26 @@ void procInput(char *input) {
   freeCharArray(command.command);
 }
 
-
 int main() {
 
   char *input;
   char *cwd;
+  char prompt[4096];
+  char *user = getenv("USER");
+  char *host = getenv("HOST"); 
+  
+  printf("\x1b[32m%s@%s\n", user, host);
+  using_history();
 
   // main loop
   while (1) {
 
-    cwd = getCWD();
-
+    sprintf(prompt, "\x1b[32m%s>\x1b[0m ", cwd=getCWD());
     // check that cwd was aquired
     if (cwd != NULL) {
-      customPrint(strcat(cwd, "> "), GREEN);
-      input = readline("");
+      // customPrint(strcat(cwd, "> "), GREEN);
+
+      input = readline(prompt);
 
       if (strlen(input) > 0) {
         procInput(input);

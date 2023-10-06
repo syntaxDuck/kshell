@@ -23,37 +23,37 @@ extern int commandMapSize;
 // Text modifiers //
 enum TextColor { RESET, RED, GREEN, BLUE, YELLOW };
 
-#define RED_TXT_COLOR() printf("\x1b[31m");
-#define GREEN_TXT_COLOR() printf("\x1b[32m");
-#define BLUE_TXT_COLOR() printf("\x1b[34m");
-#define YELLOW_TXT_COLOR() printf("\x1b[33m");
-#define RESET_TXT_COLOR() printf("\x1b[0m");
+#define RED_TXT "\x1b[31m"
+#define GREEN_TXT "\x1b[32m"
+#define BLUE_TXT "\x1b[34m"
+#define YELLOW_TXT "\x1b[33m"
+#define RESET_TXT "\x1b[0m"
 
 void customPrint(char *string, enum TextColor color) {
   enum TextColor textColor;
 
   int str_len = strlen(string);
+  char escape_seq[9];
+
 
   switch (color) {
-  case RESET:
-    RESET_TXT_COLOR();
+  case RESET: 
+    printf(RESET_TXT "%s", string );
     break;
   case RED:
-    RED_TXT_COLOR();
+    printf(RED_TXT "%s", string );
     break;
   case GREEN:
-    GREEN_TXT_COLOR();
+    printf(GREEN_TXT "%s", string );
     break;
   case BLUE:
-    BLUE_TXT_COLOR();
+    printf(BLUE_TXT "%s", string );
     break;
   case YELLOW:
-    YELLOW_TXT_COLOR();
+    printf(YELLOW_TXT "%s", string );
     break;
   }
-
-  printf("%s", string);
-  RESET_TXT_COLOR();
+  printf(RESET_TXT);
 }
 
 void procInput(char *input) {
@@ -108,22 +108,22 @@ int main() {
   char *cwd;
   char prompt[4096];
   char *user = getenv("USER");
-  char *host = getenv("HOST"); 
+  char host[128];
+  gethostname(host, sizeof(host));
   
-  printf("\x1b[32m%s@%s\n", user, host);
+  printf(GREEN_TXT "%s@%s\n" RESET_TXT, user, host);
   using_history();
 
   // main loop
   while (1) {
 
-    sprintf(prompt, "\x1b[32m%s>\x1b[0m ", cwd=getCWD());
+    sprintf(prompt, GREEN_TXT "%s> " RESET_TXT, cwd=getCWD());
     // check that cwd was aquired
     if (cwd != NULL) {
-      // customPrint(strcat(cwd, "> "), GREEN);
-
       input = readline(prompt);
 
       if (strlen(input) > 0) {
+        add_history(input);
         procInput(input);
       }
     } else {

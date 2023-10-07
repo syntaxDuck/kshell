@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <termio.h>
 
 #include "functions.h"
 #include "commands.h"
@@ -123,4 +124,32 @@ void customPrint(char *string, enum TextColor color) {
     break;
   }
   printf(RESET_TXT);
+}
+
+int disableTermEchoBuff(struct TerminalSettings terminalSettings) { 
+  terminalSettings.newSettings.c_lflag &= ~(ICANON | ECHO); 
+  if (tcsetattr(terminalSettings.fd, TCSANOW, &terminalSettings.newSettings) < 0)
+    return EXIT_FAILURE;
+
+  return EXIT_SUCCESS;
+}
+
+int enableTermEchoBuff(struct TerminalSettings terminalSettings) {
+  terminalSettings.newSettings.c_lflag |= (ICANON | ECHO);
+  if (tcsetattr(terminalSettings.fd, TCSANOW, &terminalSettings.newSettings) < 0)
+    return EXIT_FAILURE;
+
+  return EXIT_SUCCESS;
+}
+
+int resetTermConfig(struct TerminalSettings terminalSettings){
+  if (tcsetattr(terminalSettings.fd, TCSANOW, &terminalSettings.originalSettings) < 0)
+    return EXIT_FAILURE;
+
+  return EXIT_SUCCESS;
+}
+
+void getCursorPos(int *x, int *y) {
+  printf("\033[6n");
+  scanf("\033[%d;%dR", y, x);
 }

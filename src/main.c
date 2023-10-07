@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <termios.h>
 
 #include "commands.h"
 #include "functions.h"
@@ -18,7 +19,8 @@ extern struct CommandMapping commandMap[];
 extern int commandMapSize;
 
 
-void procInput(char *input) {
+
+int procInput(char *input) {
   struct Command command;
   pid_t child_pid;
   int child_status;
@@ -30,7 +32,7 @@ void procInput(char *input) {
   // check if child process was created successfully
   if (child_pid < 0) {
     perror("Failed creating child process\n");
-    exit(1);
+    return EXIT_FAILURE;
   }
 
   // check if current process is parent or child
@@ -50,27 +52,35 @@ void procInput(char *input) {
     if (!command.executed) {
       if (execvp(command.command[0], command.command) < 0) {
         perror("Failed to execute command through execvp call\n");
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
       } else {
         command.executed = true;
       }
     }
-
   } else {
     // Have parent process to wait for child process to finish
     waitpid(child_pid, &child_status, WUNTRACED);
   }
 
   freeCharArray(command.command);
+  return EXIT_SUCCESS;
 }
 
 
 int main() {
+  
+  struct termios originalSettings, newSettings;
+  tcgetattr(fileno(stdin),&originalSettings);
+  newSettings = originalSettings;
+
+  struct TerminalSettings termSettings = {stdin, originalSettings, newSettings};
 
   char *input;
   char *cwd;
-  char prompt[4096];
   char *user = getenv("USER");
+  char prompt[MAX_PATH_SIZE];
+
+  // Should probalby dynamically check if host name is too big
   char host[128];
   gethostname(host, sizeof(host));
   
@@ -80,9 +90,11 @@ int main() {
   // main loop
   while (1) {
 
-    sprintf(prompt, GREEN_TXT "%s> " RESET_TXT, cwd=getCWD());
+    sprintf(prompt, GREEN_TXT "%s>" RESET_TXT, cwd=getCWD());
+
     // check that cwd was aquired
     if (cwd != NULL) {
+      
       input = readline(prompt);
 
       if (strlen(input) > 0) {
@@ -97,5 +109,6 @@ int main() {
     free(cwd);
   }
 
+  resetTermConfig(termSettings);
   exit(EXIT_SUCCESS);
 }

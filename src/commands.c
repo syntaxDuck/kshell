@@ -8,6 +8,7 @@ struct CommandMapping commandMap[] = {{"cd", changeDirectory}};
 
 const int commandMapSize = sizeof(commandMap) / sizeof(commandMap[0]);
 
+
 void changeDirectory(char **command) {
   if (command == NULL) return;
 

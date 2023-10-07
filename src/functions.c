@@ -9,16 +9,11 @@
 
 
 
-#define MAX_PATH_SIZE 4096 // max number of characters in a path
-#define MAX_COM 1000       // max number of characters in a command
-#define MAX_LIST 100       // max number of commmands to cache
-
-
-
 char **createCharArray(int length) {
   char **array = malloc(length * sizeof(char*)); 
   return array;
 }
+
 
 void freeCharArray(char **array) {
   if (array == NULL) return;
@@ -31,6 +26,7 @@ void freeCharArray(char **array) {
 
   free(array);
 }
+
 
 struct Command getCommand(char *input) {
 
@@ -61,6 +57,7 @@ struct Command getCommand(char *input) {
 
   return command;
 }
+
 
 char *getCWD() {
 
@@ -98,4 +95,32 @@ char *getCWD() {
   
   // Failed to obtain current working directory
   return NULL;
+}
+
+
+void customPrint(char *string, enum TextColor color) {
+  enum TextColor textColor;
+
+  int str_len = strlen(string);
+  char escape_seq[9];
+
+
+  switch (color) {
+  case RESET: 
+    printf(RESET_TXT "%s", string );
+    break;
+  case RED:
+    printf(RED_TXT "%s", string );
+    break;
+  case GREEN:
+    printf(GREEN_TXT "%s", string );
+    break;
+  case BLUE:
+    printf(BLUE_TXT "%s", string );
+    break;
+  case YELLOW:
+    printf(YELLOW_TXT "%s", string );
+    break;
+  }
+  printf(RESET_TXT);
 }

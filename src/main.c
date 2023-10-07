@@ -17,44 +17,6 @@
 extern struct CommandMapping commandMap[];
 extern int commandMapSize;
 
-// Clearing the shell using escape sequences
-#define clear() printf("\033[H\033[J")
-
-// Text modifiers //
-enum TextColor { RESET, RED, GREEN, BLUE, YELLOW };
-
-#define RED_TXT "\x1b[31m"
-#define GREEN_TXT "\x1b[32m"
-#define BLUE_TXT "\x1b[34m"
-#define YELLOW_TXT "\x1b[33m"
-#define RESET_TXT "\x1b[0m"
-
-void customPrint(char *string, enum TextColor color) {
-  enum TextColor textColor;
-
-  int str_len = strlen(string);
-  char escape_seq[9];
-
-
-  switch (color) {
-  case RESET: 
-    printf(RESET_TXT "%s", string );
-    break;
-  case RED:
-    printf(RED_TXT "%s", string );
-    break;
-  case GREEN:
-    printf(GREEN_TXT "%s", string );
-    break;
-  case BLUE:
-    printf(BLUE_TXT "%s", string );
-    break;
-  case YELLOW:
-    printf(YELLOW_TXT "%s", string );
-    break;
-  }
-  printf(RESET_TXT);
-}
 
 void procInput(char *input) {
   struct Command command;
@@ -101,6 +63,7 @@ void procInput(char *input) {
 
   freeCharArray(command.command);
 }
+
 
 int main() {
 

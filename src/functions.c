@@ -1,33 +1,29 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <errno.h>
-#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <termio.h>
+#include <unistd.h>
 
-#include "functions.h"
 #include "commands.h"
-
-
+#include "functions.h"
 
 char **createCharArray(int length) {
-  char **array = malloc(length * sizeof(char*)); 
+  char **array = malloc(length * sizeof(char *));
   return array;
 }
 
-
 void freeCharArray(char **array) {
-  if (array == NULL) return;
+  if (array == NULL)
+    return;
 
   for (int i = 0; array[i] != NULL; i++) {
     free(array[i]);
     array[i] = NULL;
-  
   }
 
   free(array);
 }
-
 
 struct Command getCommand(char *input) {
 
@@ -59,7 +55,6 @@ struct Command getCommand(char *input) {
   return command;
 }
 
-
 char *getCWD() {
 
   char *cwd = NULL;
@@ -80,7 +75,9 @@ char *getCWD() {
         // Checks that the buffer was too small and soubles it to try agian
         size *= 2;
         if (size > MAX_PATH_SIZE) {
-          printf("Failed to get current working directory in elloted MAX_PATH_SIZE: %d\n",MAX_PATH_SIZE);
+          printf("Failed to get current working directory in elloted "
+                 "MAX_PATH_SIZE: %d\n",
+                 MAX_PATH_SIZE);
           return NULL;
         }
       } else {
@@ -93,11 +90,10 @@ char *getCWD() {
       return cwd;
     }
   } while (maxTries > 0);
-  
+
   // Failed to obtain current working directory
   return NULL;
 }
-
 
 void customPrint(char *string, enum TextColor color) {
   enum TextColor textColor;
@@ -105,46 +101,55 @@ void customPrint(char *string, enum TextColor color) {
   int str_len = strlen(string);
   char escape_seq[9];
 
-
   switch (color) {
-  case RESET: 
-    printf(RESET_TXT "%s", string );
+  case RESET:
+    printf(RESET_TXT "%s", string);
     break;
   case RED:
-    printf(RED_TXT "%s", string );
+    printf(RED_TXT "%s", string);
     break;
   case GREEN:
-    printf(GREEN_TXT "%s", string );
+    printf(GREEN_TXT "%s", string);
     break;
   case BLUE:
-    printf(BLUE_TXT "%s", string );
+    printf(BLUE_TXT "%s", string);
     break;
   case YELLOW:
-    printf(YELLOW_TXT "%s", string );
+    printf(YELLOW_TXT "%s", string);
     break;
   }
   printf(RESET_TXT);
 }
 
-int disableTermEchoBuff(struct TerminalSettings terminalSettings) { 
-  terminalSettings.newSettings.c_lflag &= ~(ICANON | ECHO); 
-  if (tcsetattr(terminalSettings.fd, TCSANOW, &terminalSettings.newSettings) < 0)
+int disableTermEchoBuff(struct TerminalSettings terminalSettings) {
+  terminalSettings.newSettings.c_lflag &= ~(ICANON | ECHO);
+  if (tcsetattr(terminalSettings.fd, TCSANOW, 
+                &terminalSettings.newSettings) < 0) {
+    perror("Failed to set terminal attributes");
     return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }
 
 int enableTermEchoBuff(struct TerminalSettings terminalSettings) {
   terminalSettings.newSettings.c_lflag |= (ICANON | ECHO);
-  if (tcsetattr(terminalSettings.fd, TCSANOW, &terminalSettings.newSettings) < 0)
+  if (tcsetattr(terminalSettings.fd, TCSANOW, 
+                &terminalSettings.newSettings) < 0) {
+    perror("Failed to set terminal attributes");
     return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }
 
-int resetTermConfig(struct TerminalSettings terminalSettings){
-  if (tcsetattr(terminalSettings.fd, TCSANOW, &terminalSettings.originalSettings) < 0)
+int resetTermConfig(struct TerminalSettings terminalSettings) {
+  if (tcsetattr(terminalSettings.fd, TCSANOW,
+                &terminalSettings.originalSettings) < 0) {
+
+    perror("Failed to set terminal attributes");
     return EXIT_FAILURE;
+  }
 
   return EXIT_SUCCESS;
 }

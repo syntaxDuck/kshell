@@ -32,7 +32,7 @@ char *getCWD();
 
 int disableTermEchoBuff(struct TerminalSettings terminalSettings);
 int enableTermEchoBuff(struct TerminalSettings terminalSettings);
-int resetTermCofig(struct TerminalSettings terminalSettings);
+int resetTermConfig(struct TerminalSettings terminalSettings);
 
 void freeCharArray(char **array);
 void getCursorPos(int *x, int *y);

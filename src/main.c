@@ -73,7 +73,7 @@ int main() {
   tcgetattr(fileno(stdin),&originalSettings);
   newSettings = originalSettings;
 
-  struct TerminalSettings termSettings = {stdin, originalSettings, newSettings};
+  struct TerminalSettings termSettings = {fileno(stdin), originalSettings, newSettings};
 
   char *input;
   char *cwd;
@@ -90,7 +90,7 @@ int main() {
   // main loop
   while (1) {
 
-    sprintf(prompt, GREEN_TXT "%s>" RESET_TXT, cwd=getCWD());
+    sprintf(prompt, GREEN_TXT "%s> " RESET_TXT, cwd=getCWD());
 
     // check that cwd was aquired
     if (cwd != NULL) {
